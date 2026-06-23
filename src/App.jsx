@@ -679,8 +679,8 @@ function ContactSection() {
               <ContactDetail
                 icon={Mail}
                 label="Correo electrónico"
-                value="hola@nexora.cr"
-                href="mailto:hola@nexora.cr"
+                value="dflaque.m@gmail.com"
+                href="mailto:dflaque.m@gmail.com"
               />
               <ContactDetail icon={MapPin} label="Ubicación" value="Guanacaste, Costa Rica" />
             </div>
