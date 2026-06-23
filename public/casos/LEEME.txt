@@ -1,0 +1,14 @@
+Coloca aquí las 5 capturas del sistema de la Asociación Solidarista de Tilarán,
+con EXACTAMENTE estos nombres (formato .png):
+
+  tilaran-dashboard.png   → Dashboard del asociado (ahorros + préstamos)
+  tilaran-prestamos.png   → Mis préstamos activos (tabla + exportar)
+  tilaran-ahorros.png     → Mis ahorros (métricas + tabla)
+  tilaran-solicitud.png   → Solicitud de préstamo (formulario)
+  tilaran-perfil.png      → Editar perfil / Configuración
+
+Mientras no existan, la sección mostrará un recuadro con la descripción de cada
+imagen (no se rompe el diseño). Apenas las subas con estos nombres, aparecerán
+automáticamente.
+
+Puedes borrar este archivo cuando agregues las imágenes.
