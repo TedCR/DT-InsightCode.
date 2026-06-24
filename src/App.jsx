@@ -31,6 +31,9 @@ import {
   Minus,
   Plus,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
 } from 'lucide-react'
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
@@ -720,6 +723,9 @@ function Process() {
    ============================================================ */
 
 function CaseStudy() {
+  // null = cerrado; un número = índice de la imagen ampliada
+  const [lightbox, setLightbox] = useState(null)
+
   return (
     <section id="casos" className="bg-slate-50 py-20 sm:py-28 dark:bg-brand-950">
       <div className="container-page">
@@ -788,43 +794,151 @@ function CaseStudy() {
             </ul>
           </div>
 
-          {/* Lado derecho: galería de capturas (imágenes completas, sin recorte) */}
+          {/* Lado derecho: galería de capturas (clic para ampliar) */}
           <div className="grid gap-4">
             {/* Captura principal */}
-            <CaseImage image={CASE_STUDY.gallery[0]} />
+            <CaseImage image={CASE_STUDY.gallery[0]} onOpen={() => setLightbox(0)} />
             {/* Capturas secundarias */}
             <div className="grid gap-4 sm:grid-cols-2">
-              {CASE_STUDY.gallery.slice(1).map((img) => (
-                <CaseImage key={img.src} image={img} />
+              {CASE_STUDY.gallery.slice(1).map((img, i) => (
+                <CaseImage key={img.src} image={img} onOpen={() => setLightbox(i + 1)} />
               ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Visor de imagen ampliada (galería) */}
+      {lightbox !== null && (
+        <Lightbox
+          images={CASE_STUDY.gallery}
+          index={lightbox}
+          setIndex={setLightbox}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </section>
+  )
+}
+
+/* Visor a pantalla completa con navegación (teclado: ← → Esc). */
+function Lightbox({ images, index, setIndex, onClose }) {
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape') onClose()
+      else if (e.key === 'ArrowRight') setIndex((i) => (i + 1) % images.length)
+      else if (e.key === 'ArrowLeft') setIndex((i) => (i - 1 + images.length) % images.length)
+    }
+    document.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden' // evita scroll de fondo
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [images.length, setIndex, onClose])
+
+  const img = images[index]
+  const go = (dir) => (e) => {
+    e.stopPropagation()
+    setIndex((i) => (i + dir + images.length) % images.length)
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Imagen ampliada"
+      onClick={onClose}
+      className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/85 p-4 backdrop-blur-sm sm:p-8"
+    >
+      {/* Cerrar */}
+      <button
+        onClick={onClose}
+        aria-label="Cerrar"
+        className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      {/* Anterior */}
+      <button
+        onClick={go(-1)}
+        aria-label="Imagen anterior"
+        className="absolute left-3 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:left-6"
+      >
+        <ChevronLeft className="h-7 w-7" />
+      </button>
+
+      {/* Imagen */}
+      <img
+        src={img.src}
+        alt={img.alt}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[78vh] max-w-full rounded-xl object-contain shadow-2xl"
+      />
+
+      {/* Siguiente */}
+      <button
+        onClick={go(1)}
+        aria-label="Imagen siguiente"
+        className="absolute right-3 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 sm:right-6"
+      >
+        <ChevronRight className="h-7 w-7" />
+      </button>
+
+      {/* Pie: contador + descripción */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="mt-4 max-w-xl text-center text-sm text-slate-200"
+      >
+        <span className="font-semibold text-white">
+          {index + 1} / {images.length}
+        </span>
+        <span className="mx-2 text-white/40">·</span>
+        {img.alt}
+      </div>
+    </div>
   )
 }
 
 /* Imagen del caso con borde elegante y fallback si aún no se ha subido la captura.
    Se muestra completa (sin recorte), respetando su proporción natural. */
-function CaseImage({ image }) {
+function CaseImage({ image, onOpen }) {
   const [failed, setFailed] = useState(false)
-  return (
-    <figure className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-white/10 dark:bg-white/5">
-      {failed ? (
+
+  // Si la imagen no carga, mostramos el recuadro de respaldo (no clicable).
+  if (failed) {
+    return (
+      <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-white/10 dark:bg-white/5">
         <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 bg-slate-100 p-4 text-center dark:bg-white/5">
           <FileText className="h-6 w-6 text-slate-400" />
           <span className="text-xs text-slate-400">{image.alt}</span>
         </div>
-      ) : (
-        <img
-          src={image.src}
-          alt={image.alt}
-          onError={() => setFailed(true)}
-          className="block h-auto w-full transition-transform duration-300 group-hover:scale-[1.02]"
-        />
-      )}
-    </figure>
+      </figure>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Ampliar imagen: ${image.alt}`}
+      className="group relative block cursor-zoom-in overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-white/10 dark:bg-white/5"
+    >
+      <img
+        src={image.src}
+        alt={image.alt}
+        onError={() => setFailed(true)}
+        className="block h-auto w-full transition-transform duration-300 group-hover:scale-[1.03]"
+      />
+      {/* Capa con lupa al pasar el cursor */}
+      <span className="absolute inset-0 flex items-center justify-center bg-brand-950/0 transition-colors duration-300 group-hover:bg-brand-950/30">
+        <span className="flex h-12 w-12 scale-90 items-center justify-center rounded-full bg-white/95 text-brand-900 opacity-0 shadow-soft transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+          <ZoomIn className="h-6 w-6" />
+        </span>
+      </span>
+    </button>
   )
 }
 
