@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   BarChart3,
   Code2,
@@ -23,6 +23,14 @@ import {
   Facebook,
   Building2,
   TrendingUp,
+  Accessibility,
+  Sun,
+  Moon,
+  Contrast,
+  Type,
+  Minus,
+  Plus,
+  RotateCcw,
 } from 'lucide-react'
 import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
 
@@ -152,6 +160,8 @@ const CASE_STUDY = {
   ],
 }
 
+const FONT_SIZES = { '-1': '93.75%', 0: '100%', 1: '112.5%', 2: '125%' }
+
 /* ============================================================
    COMPONENTE PRINCIPAL
    ============================================================ */
@@ -159,20 +169,225 @@ const CASE_STUDY = {
 export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  // Preferencias de accesibilidad
+  const [theme, setTheme] = useState('light') // 'light' | 'dark'
+  const [fontScale, setFontScale] = useState(0) // -1, 0, 1, 2
+  const [contrast, setContrast] = useState(false)
+  const [reduceMotion, setReduceMotion] = useState(false)
+
+  // Cargar preferencias guardadas (o usar la del sistema para el tema)
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('dt-a11y') || '{}')
+      if (saved.theme === 'dark' || saved.theme === 'light') setTheme(saved.theme)
+      else if (window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark')
+      if (typeof saved.fontScale === 'number') setFontScale(saved.fontScale)
+      if (saved.contrast) setContrast(true)
+      if (saved.reduceMotion) setReduceMotion(true)
+    } catch {
+      /* sin persistencia disponible */
+    }
+  }, [])
+
+  // Aplicar preferencias al documento + guardar
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.toggle('dark', theme === 'dark')
+    root.classList.toggle('reduce-motion', reduceMotion)
+    root.style.fontSize = FONT_SIZES[fontScale] || '100%'
+    try {
+      localStorage.setItem('dt-a11y', JSON.stringify({ theme, fontScale, contrast, reduceMotion }))
+    } catch {
+      /* sin persistencia disponible */
+    }
+  }, [theme, fontScale, contrast, reduceMotion])
+
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-      <main>
-        <Hero />
-        <Services />
-        <LocalTrust />
-        <Process />
-        <CaseStudy />
-        <ContactSection />
-      </main>
-      <Footer />
+    <div className="min-h-screen bg-white transition-colors duration-300 dark:bg-brand-950">
+      {/* Contenido: aquí se aplica el alto contraste (no afecta a los botones flotantes) */}
+      <div className={contrast ? 'contrast-boost' : undefined}>
+        <Navbar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+        <main>
+          <Hero />
+          <Services />
+          <LocalTrust />
+          <Process />
+          <CaseStudy />
+          <ContactSection />
+        </main>
+        <Footer />
+      </div>
+
       <FloatingWhatsApp />
+      <AccessibilityWidget
+        theme={theme}
+        setTheme={setTheme}
+        fontScale={fontScale}
+        setFontScale={setFontScale}
+        contrast={contrast}
+        setContrast={setContrast}
+        reduceMotion={reduceMotion}
+        setReduceMotion={setReduceMotion}
+      />
     </div>
+  )
+}
+
+/* ============================================================
+   WIDGET DE ACCESIBILIDAD
+   ============================================================ */
+
+function AccessibilityWidget({
+  theme,
+  setTheme,
+  fontScale,
+  setFontScale,
+  contrast,
+  setContrast,
+  reduceMotion,
+  setReduceMotion,
+}) {
+  const [open, setOpen] = useState(false)
+  const isDark = theme === 'dark'
+
+  function reset() {
+    setTheme('light')
+    setFontScale(0)
+    setContrast(false)
+    setReduceMotion(false)
+  }
+
+  return (
+    <div className="fixed bottom-5 left-5 z-50 sm:bottom-6 sm:left-6">
+      {/* Panel */}
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Opciones de accesibilidad"
+          className="absolute bottom-16 left-0 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-soft dark:border-white/10 dark:bg-brand-900"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-brand-950 dark:text-white">Accesibilidad</h2>
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Cerrar panel de accesibilidad"
+              className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Tema claro/oscuro */}
+          <ToggleRow
+            icon={isDark ? Moon : Sun}
+            label="Modo oscuro"
+            pressed={isDark}
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          />
+
+          {/* Tamaño de texto */}
+          <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-white/5">
+            <span className="flex items-center gap-2 text-sm font-medium text-brand-950 dark:text-slate-200">
+              <Type className="h-4 w-4 text-accent-500" />
+              Tamaño de texto
+            </span>
+            <div className="flex items-center gap-1">
+              <IconBtn
+                label="Reducir tamaño de texto"
+                onClick={() => setFontScale((v) => Math.max(-1, v - 1))}
+                disabled={fontScale <= -1}
+              >
+                <Minus className="h-4 w-4" />
+              </IconBtn>
+              <span className="w-6 text-center text-xs font-bold text-brand-700 dark:text-accent-400">
+                {Math.round(parseFloat(FONT_SIZES[fontScale]))}%
+              </span>
+              <IconBtn
+                label="Aumentar tamaño de texto"
+                onClick={() => setFontScale((v) => Math.min(2, v + 1))}
+                disabled={fontScale >= 2}
+              >
+                <Plus className="h-4 w-4" />
+              </IconBtn>
+            </div>
+          </div>
+
+          {/* Alto contraste */}
+          <ToggleRow
+            icon={Contrast}
+            label="Alto contraste"
+            pressed={contrast}
+            onClick={() => setContrast((v) => !v)}
+            className="mt-2"
+          />
+
+          {/* Reducir animaciones */}
+          <ToggleRow
+            icon={RotateCcw}
+            label="Reducir animaciones"
+            pressed={reduceMotion}
+            onClick={() => setReduceMotion((v) => !v)}
+            className="mt-2"
+          />
+
+          <button
+            onClick={reset}
+            className="mt-3 w-full rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+          >
+            Restablecer preferencias
+          </button>
+        </div>
+      )}
+
+      {/* Botón flotante */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Abrir opciones de accesibilidad"
+        aria-expanded={open}
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-900 text-white shadow-soft transition-transform hover:scale-105 dark:bg-brand-800"
+      >
+        <Accessibility className="h-7 w-7" strokeWidth={2} />
+      </button>
+    </div>
+  )
+}
+
+function ToggleRow({ icon: Icon, label, pressed, onClick, className = '' }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={pressed}
+      className={`flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 text-left transition-colors hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 ${className}`}
+    >
+      <span className="flex items-center gap-2 text-sm font-medium text-brand-950 dark:text-slate-200">
+        <Icon className="h-4 w-4 text-accent-500" />
+        {label}
+      </span>
+      <span
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+          pressed ? 'bg-accent-500' : 'bg-slate-300 dark:bg-white/20'
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
+            pressed ? 'left-[1.125rem]' : 'left-0.5'
+          }`}
+        />
+      </span>
+    </button>
+  )
+}
+
+function IconBtn({ children, label, onClick, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-brand-900 shadow-sm transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+    >
+      {children}
+    </button>
   )
 }
 
@@ -198,7 +413,7 @@ function FloatingWhatsApp() {
       className="group fixed bottom-5 right-5 z-50 flex items-center gap-3 sm:bottom-6 sm:right-6"
     >
       {/* Etiqueta que aparece en hover (solo desktop) */}
-      <span className="pointer-events-none hidden translate-x-2 rounded-full bg-brand-950 px-4 py-2 text-sm font-semibold text-white opacity-0 shadow-soft transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 md:block">
+      <span className="pointer-events-none hidden translate-x-2 rounded-full bg-brand-950 px-4 py-2 text-sm font-semibold text-white opacity-0 shadow-soft transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 md:block dark:bg-brand-800">
         Escríbenos por WhatsApp
       </span>
       <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-soft transition-transform hover:scale-105">
@@ -216,13 +431,13 @@ function FloatingWhatsApp() {
 
 function Navbar({ mobileOpen, setMobileOpen }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/80 backdrop-blur-md dark:border-white/10 dark:bg-brand-950/80">
       <nav className="container-page flex h-16 items-center justify-between">
         <a href="#inicio" className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-900 text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-900 text-white dark:bg-brand-800">
             <BarChart3 className="h-5 w-5 text-accent-400" strokeWidth={2.5} />
           </span>
-          <span className="text-lg font-extrabold tracking-tight text-brand-900">
+          <span className="text-lg font-extrabold tracking-tight text-brand-900 dark:text-white">
             {BRAND}
             <span className="text-accent-500">.</span>
           </span>
@@ -234,7 +449,7 @@ function Navbar({ mobileOpen, setMobileOpen }) {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="text-sm font-medium text-slate-600 transition-colors hover:text-brand-900"
+                className="text-sm font-medium text-slate-600 transition-colors hover:text-brand-900 dark:text-slate-300 dark:hover:text-white"
               >
                 {link.label}
               </a>
@@ -245,7 +460,7 @@ function Navbar({ mobileOpen, setMobileOpen }) {
         <div className="hidden md:block">
           <a
             href="#contacto"
-            className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-brand-800 hover:shadow-none"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-all hover:bg-brand-800 hover:shadow-none dark:bg-accent-500 dark:text-brand-950 dark:hover:bg-accent-400"
           >
             Asesoría Gratuita
             <ArrowRight className="h-4 w-4" />
@@ -255,7 +470,7 @@ function Navbar({ mobileOpen, setMobileOpen }) {
         {/* Botón menú móvil */}
         <button
           onClick={() => setMobileOpen((v) => !v)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-brand-900 md:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-brand-900 md:hidden dark:text-white"
           aria-label="Abrir menú"
         >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -264,14 +479,14 @@ function Navbar({ mobileOpen, setMobileOpen }) {
 
       {/* Menú móvil desplegable */}
       {mobileOpen && (
-        <div className="border-t border-slate-100 bg-white md:hidden">
+        <div className="border-t border-slate-100 bg-white md:hidden dark:border-white/10 dark:bg-brand-950">
           <ul className="container-page flex flex-col gap-1 py-4">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <a
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="block rounded-lg px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+                  className="block rounded-lg px-3 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
                 >
                   {link.label}
                 </a>
@@ -281,7 +496,7 @@ function Navbar({ mobileOpen, setMobileOpen }) {
               <a
                 href="#contacto"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-full bg-brand-900 px-5 py-3 text-base font-semibold text-white"
+                className="flex items-center justify-center gap-2 rounded-full bg-brand-900 px-5 py-3 text-base font-semibold text-white dark:bg-accent-500 dark:text-brand-950"
               >
                 Asesoría Gratuita
                 <ArrowRight className="h-4 w-4" />
@@ -300,48 +515,49 @@ function Navbar({ mobileOpen, setMobileOpen }) {
 
 function Hero() {
   return (
-    <section id="inicio" className="relative overflow-hidden bg-white">
+    <section id="inicio" className="relative overflow-hidden bg-white dark:bg-brand-950">
       {/* Fondo decorativo sutil */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-brand-50 blur-3xl" />
-        <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-accent-50 blur-3xl" />
+        <div className="absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-brand-50 blur-3xl dark:bg-brand-800/30" />
+        <div className="absolute right-0 top-32 h-72 w-72 rounded-full bg-accent-50 blur-3xl dark:bg-accent-500/10" />
       </div>
 
       <div className="container-page py-20 sm:py-28 lg:py-32">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
+          <span className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-medium text-slate-600 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
             <MapPin className="h-3.5 w-3.5 text-accent-500" />
             Tecnología & datos · Guanacaste, Costa Rica
           </span>
 
-          <h1 className="animate-fade-up mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-brand-950 sm:text-5xl lg:text-6xl">
+          <h1 className="animate-fade-up mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-brand-950 sm:text-5xl lg:text-6xl dark:text-white">
             Impulsamos tu negocio en Guanacaste con{' '}
-            <span className="text-brand-700">datos y tecnología</span> a tu medida
+            <span className="text-brand-700 dark:text-accent-400">datos y tecnología</span> a tu medida
           </h1>
 
-          <p className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
-            Creamos sistemas web y dashboards de <strong className="font-semibold text-slate-800">Business
-            Analytics</strong> que convierten tu información en decisiones claras: vende más, reduce costos
-            y digitaliza tu PYME sin complicaciones.
+          <p className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+            Creamos sistemas web y dashboards de{' '}
+            <strong className="font-semibold text-slate-800 dark:text-slate-100">Business Analytics</strong> que
+            convierten tu información en decisiones claras: vende más, reduce costos y digitaliza tu PYME sin
+            complicaciones.
           </p>
 
           <div className="animate-fade-up mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
               href="#contacto"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-900 px-7 py-3.5 text-base font-semibold text-white shadow-soft transition-all hover:bg-brand-800 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-900 px-7 py-3.5 text-base font-semibold text-white shadow-soft transition-all hover:bg-brand-800 sm:w-auto dark:bg-accent-500 dark:text-brand-950 dark:hover:bg-accent-400"
             >
               Solicitar asesoría gratuita
               <ArrowRight className="h-5 w-5" />
             </a>
             <a
               href="#servicios"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-base font-semibold text-brand-900 transition-all hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-base font-semibold text-brand-900 transition-all hover:border-slate-300 hover:bg-slate-50 sm:w-auto dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
             >
               Ver servicios
             </a>
           </div>
 
-          <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-500">
+          <div className="animate-fade-up mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-500 dark:text-slate-400">
             <span className="inline-flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-accent-500" /> Diagnóstico sin costo
             </span>
@@ -364,7 +580,7 @@ function Hero() {
 
 function Services() {
   return (
-    <section id="servicios" className="bg-slate-50 py-20 sm:py-28">
+    <section id="servicios" className="bg-slate-50 py-20 sm:py-28 dark:bg-brand-950">
       <div className="container-page">
         <SectionHeading
           eyebrow="Servicios"
@@ -376,16 +592,21 @@ function Services() {
           {SERVICES.map((service) => (
             <article
               key={service.title}
-              className="group relative flex flex-col rounded-3xl border border-slate-100 bg-white p-8 shadow-card transition-all hover:-translate-y-1 hover:border-accent-200 hover:shadow-soft sm:p-10"
+              className="group relative flex flex-col rounded-3xl border border-slate-100 bg-white p-8 shadow-card transition-all hover:-translate-y-1 hover:border-accent-200 hover:shadow-soft sm:p-10 dark:border-white/10 dark:bg-white/5 dark:hover:border-accent-500/40"
             >
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-900 text-accent-400 transition-colors group-hover:bg-brand-800">
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-900 text-accent-400 transition-colors group-hover:bg-brand-800 dark:bg-brand-800">
                 <service.icon className="h-7 w-7" strokeWidth={2} />
               </span>
-              <h3 className="mt-6 text-xl font-bold text-brand-950 sm:text-2xl">{service.title}</h3>
-              <p className="mt-3 leading-relaxed text-slate-600">{service.description}</p>
+              <h3 className="mt-6 text-xl font-bold text-brand-950 sm:text-2xl dark:text-white">
+                {service.title}
+              </h3>
+              <p className="mt-3 leading-relaxed text-slate-600 dark:text-slate-300">{service.description}</p>
               <ul className="mt-6 space-y-2.5">
                 {service.points.map((point) => (
-                  <li key={point} className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+                  <li
+                    key={point}
+                    className="flex items-center gap-2.5 text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-accent-500" />
                     {point}
                   </li>
@@ -393,7 +614,7 @@ function Services() {
               </ul>
               <a
                 href="#contacto"
-                className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-900"
+                className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 transition-colors hover:text-brand-900 dark:text-accent-400 dark:hover:text-accent-300"
               >
                 Quiero esto para mi negocio
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -412,18 +633,18 @@ function Services() {
 
 function LocalTrust() {
   return (
-    <section className="bg-white py-20 sm:py-28">
+    <section className="bg-white py-20 sm:py-28 dark:bg-brand-950">
       <div className="container-page">
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent-700">
+            <span className="inline-flex items-center gap-2 rounded-full bg-accent-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent-700 dark:bg-accent-500/15 dark:text-accent-300">
               <MapPin className="h-3.5 w-3.5" />
               Enfoque local
             </span>
-            <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-brand-950 sm:text-4xl">
+            <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-brand-950 sm:text-4xl dark:text-white">
               Somos tu equipo de tecnología en Guanacaste
             </h2>
-            <p className="mt-5 text-lg leading-relaxed text-slate-600">
+            <p className="mt-5 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
               No somos una agencia lejana ni un call center. Somos profesionales que conocen el mercado,
               hablan tu idioma y te dan soporte real cuando lo necesitás, sin intermediarios ni letra
               pequeña.
@@ -434,14 +655,16 @@ function LocalTrust() {
             {TRUST_POINTS.map((item) => (
               <div
                 key={item.title}
-                className="flex gap-4 rounded-2xl border border-slate-100 bg-slate-50/60 p-6 transition-colors hover:bg-slate-50"
+                className="flex gap-4 rounded-2xl border border-slate-100 bg-slate-50/60 p-6 transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand-700 shadow-sm">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-brand-700 shadow-sm dark:bg-brand-900 dark:text-accent-400">
                   <item.icon className="h-6 w-6" strokeWidth={2} />
                 </span>
                 <div>
-                  <h3 className="font-bold text-brand-950">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-600">{item.description}</p>
+                  <h3 className="font-bold text-brand-950 dark:text-white">{item.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -458,7 +681,7 @@ function LocalTrust() {
 
 function Process() {
   return (
-    <section id="proceso" className="bg-brand-950 py-20 text-white sm:py-28">
+    <section id="proceso" className="bg-brand-950 py-20 text-white sm:py-28 dark:bg-black/40">
       <div className="container-page">
         <SectionHeading
           dark
@@ -498,7 +721,7 @@ function Process() {
 
 function CaseStudy() {
   return (
-    <section id="casos" className="bg-slate-50 py-20 sm:py-28">
+    <section id="casos" className="bg-slate-50 py-20 sm:py-28 dark:bg-brand-950">
       <div className="container-page">
         <SectionHeading
           eyebrow="Caso de éxito"
@@ -509,31 +732,42 @@ function CaseStudy() {
         <div className="mt-14 grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
           {/* Lado izquierdo: historia + métricas */}
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-4 py-1.5 text-xs font-semibold text-accent-300">
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-4 py-1.5 text-xs font-semibold text-accent-300 dark:bg-brand-800">
               <Building2 className="h-3.5 w-3.5" />
               {CASE_STUDY.tag}
             </span>
-            <h3 className="mt-5 text-2xl font-bold leading-snug text-brand-950">{CASE_STUDY.client}</h3>
-            <p className="mt-4 leading-relaxed text-slate-600">{CASE_STUDY.summary}</p>
+            <h3 className="mt-5 text-2xl font-bold leading-snug text-brand-950 dark:text-white">
+              {CASE_STUDY.client}
+            </h3>
+            <p className="mt-4 leading-relaxed text-slate-600 dark:text-slate-300">{CASE_STUDY.summary}</p>
 
             {/* Antes / Después */}
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Antes</p>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{CASE_STUDY.before}</p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  Antes
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                  {CASE_STUDY.before}
+                </p>
               </div>
-              <div className="rounded-2xl border border-accent-200 bg-accent-50 p-5">
-                <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent-700">
+              <div className="rounded-2xl border border-accent-200 bg-accent-50 p-5 dark:border-accent-500/30 dark:bg-accent-500/10">
+                <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent-700 dark:text-accent-300">
                   <TrendingUp className="h-3.5 w-3.5" /> Después
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-accent-900">{CASE_STUDY.after}</p>
+                <p className="mt-2 text-sm leading-relaxed text-accent-900 dark:text-accent-100">
+                  {CASE_STUDY.after}
+                </p>
               </div>
             </div>
 
             {/* Métricas */}
             <div className="mt-6 grid grid-cols-3 gap-3">
               {CASE_STUDY.metrics.map((m) => (
-                <div key={m.label} className="rounded-2xl bg-brand-900 p-4 text-center text-white">
+                <div
+                  key={m.label}
+                  className="rounded-2xl bg-brand-900 p-4 text-center text-white dark:bg-brand-800"
+                >
                   <p className="text-2xl font-extrabold text-accent-300">{m.value}</p>
                   <p className="mt-1 text-xs leading-tight text-slate-300">{m.label}</p>
                 </div>
@@ -543,7 +777,10 @@ function CaseStudy() {
             {/* Funcionalidades entregadas */}
             <ul className="mt-6 space-y-2.5">
               {CASE_STUDY.features.map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-slate-700">
+                <li
+                  key={f}
+                  className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300"
+                >
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-500" />
                   {f}
                 </li>
@@ -573,9 +810,9 @@ function CaseStudy() {
 function CaseImage({ image }) {
   const [failed, setFailed] = useState(false)
   return (
-    <figure className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
+    <figure className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-white/10 dark:bg-white/5">
       {failed ? (
-        <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 bg-slate-100 p-4 text-center">
+        <div className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 bg-slate-100 p-4 text-center dark:bg-white/5">
           <FileText className="h-6 w-6 text-slate-400" />
           <span className="text-xs text-slate-400">{image.alt}</span>
         </div>
@@ -657,7 +894,7 @@ function ContactSection() {
   const isLoading = status === 'loading'
 
   return (
-    <section id="contacto" className="bg-slate-50 py-20 sm:py-28">
+    <section id="contacto" className="bg-slate-50 py-20 sm:py-28 dark:bg-brand-950">
       <div className="container-page">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Columna informativa */}
@@ -685,17 +922,18 @@ function ContactSection() {
               <ContactDetail icon={MapPin} label="Ubicación" value="Guanacaste, Costa Rica" />
             </div>
 
-            <div className="mt-8 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="mt-8 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
               <Users className="h-8 w-8 shrink-0 text-accent-500" />
-              <p className="text-sm leading-relaxed text-slate-600">
-                Más de <strong className="font-semibold text-brand-900">una respuesta humana</strong>: hablás
-                directo con quien desarrolla tu proyecto.
+              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                Más de{' '}
+                <strong className="font-semibold text-brand-900 dark:text-white">una respuesta humana</strong>:
+                hablás directo con quien desarrolla tu proyecto.
               </p>
             </div>
           </div>
 
           {/* Formulario */}
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-card sm:p-8">
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-card sm:p-8 dark:border-white/10 dark:bg-white/5">
             {status === 'success' ? (
               <SuccessState onReset={() => setStatus('idle')} />
             ) : (
@@ -742,7 +980,10 @@ function ContactSection() {
                 </div>
 
                 <div>
-                  <label htmlFor="servicio" className="mb-1.5 block text-sm font-semibold text-brand-950">
+                  <label
+                    htmlFor="servicio"
+                    className="mb-1.5 block text-sm font-semibold text-brand-950 dark:text-slate-200"
+                  >
                     Tipo de servicio que necesitas
                   </label>
                   <select
@@ -752,7 +993,7 @@ function ContactSection() {
                     onChange={handleChange}
                     required
                     disabled={isLoading}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-brand-950 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:opacity-60"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-brand-950 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:opacity-60 dark:border-white/15 dark:bg-brand-950 dark:text-white dark:focus:ring-accent-500/30"
                   >
                     <option value="" disabled>
                       Selecciona una opción
@@ -771,7 +1012,7 @@ function ContactSection() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-900 px-6 py-3.5 text-base font-semibold text-white shadow-soft transition-all hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-900 px-6 py-3.5 text-base font-semibold text-white shadow-soft transition-all hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-accent-500 dark:text-brand-950 dark:hover:bg-accent-400"
                 >
                   {isLoading ? (
                     <>
@@ -786,7 +1027,7 @@ function ContactSection() {
                   )}
                 </button>
 
-                <p className="text-center text-xs text-slate-400">
+                <p className="text-center text-xs text-slate-400 dark:text-slate-500">
                   Al enviar aceptas que te contactemos sobre tu consulta. No compartimos tus datos.
                 </p>
               </form>
@@ -800,13 +1041,15 @@ function ContactSection() {
 
 function ContactDetail({ icon: Icon, label, value, href }) {
   const content = (
-    <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 transition-colors hover:border-slate-200">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+    <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 transition-colors hover:border-slate-200 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-white/10 dark:text-accent-300">
         <Icon className="h-5 w-5" />
       </span>
       <div>
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-        <p className="font-semibold text-brand-950">{value}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          {label}
+        </p>
+        <p className="font-semibold text-brand-950 dark:text-white">{value}</p>
       </div>
     </div>
   )
@@ -823,7 +1066,10 @@ function ContactDetail({ icon: Icon, label, value, href }) {
 function Field({ label, name, type = 'text', value, onChange, placeholder, required, disabled }) {
   return (
     <div>
-      <label htmlFor={name} className="mb-1.5 block text-sm font-semibold text-brand-950">
+      <label
+        htmlFor={name}
+        className="mb-1.5 block text-sm font-semibold text-brand-950 dark:text-slate-200"
+      >
         {label}
         {required && <span className="text-accent-600"> *</span>}
       </label>
@@ -836,7 +1082,7 @@ function Field({ label, name, type = 'text', value, onChange, placeholder, requi
         placeholder={placeholder}
         required={required}
         disabled={disabled}
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-brand-950 outline-none transition-all placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:opacity-60"
+        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-brand-950 outline-none transition-all placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:opacity-60 dark:border-white/15 dark:bg-brand-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-accent-500/30"
       />
     </div>
   )
@@ -850,8 +1096,8 @@ function Alert({ type, message }) {
       role="alert"
       className={`flex items-start gap-3 rounded-xl border p-4 text-sm ${
         isError
-          ? 'border-red-200 bg-red-50 text-red-800'
-          : 'border-accent-200 bg-accent-50 text-accent-800'
+          ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300'
+          : 'border-accent-200 bg-accent-50 text-accent-800 dark:border-accent-500/30 dark:bg-accent-500/10 dark:text-accent-200'
       }`}
     >
       {isError ? (
@@ -868,16 +1114,16 @@ function Alert({ type, message }) {
 function SuccessState({ onReset }) {
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-50">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-50 dark:bg-accent-500/15">
         <CheckCircle2 className="h-9 w-9 text-accent-500" strokeWidth={2.2} />
       </span>
-      <h3 className="mt-6 text-2xl font-bold text-brand-950">¡Mensaje enviado correctamente!</h3>
-      <p className="mt-2 max-w-sm text-slate-600">
+      <h3 className="mt-6 text-2xl font-bold text-brand-950 dark:text-white">¡Mensaje enviado correctamente!</h3>
+      <p className="mt-2 max-w-sm text-slate-600 dark:text-slate-300">
         Gracias por tu interés. Te contactaremos muy pronto para coordinar tu asesoría gratuita.
       </p>
       <button
         onClick={onReset}
-        className="mt-8 inline-flex items-center gap-2 rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-brand-900 transition-colors hover:bg-slate-50"
+        className="mt-8 inline-flex items-center gap-2 rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-brand-900 transition-colors hover:bg-slate-50 dark:border-white/15 dark:text-white dark:hover:bg-white/5"
       >
         Enviar otra consulta
       </button>
@@ -892,21 +1138,21 @@ function SuccessState({ onReset }) {
 function Footer() {
   const year = 2026 // Fija el año en build; cámbialo o usa new Date().getFullYear() si prefieres dinámico.
   return (
-    <footer className="border-t border-slate-100 bg-white">
+    <footer className="border-t border-slate-100 bg-white dark:border-white/10 dark:bg-brand-950">
       <div className="container-page py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           {/* Marca */}
           <div>
             <a href="#inicio" className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-900 text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-900 text-white dark:bg-brand-800">
                 <BarChart3 className="h-5 w-5 text-accent-400" strokeWidth={2.5} />
               </span>
-              <span className="text-lg font-extrabold tracking-tight text-brand-900">
+              <span className="text-lg font-extrabold tracking-tight text-brand-900 dark:text-white">
                 {BRAND}
                 <span className="text-accent-500">.</span>
               </span>
             </a>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               Tecnología y datos a la medida para PYMES y empresas de Guanacaste, Costa Rica.
             </p>
             <div className="mt-5 flex gap-3">
@@ -919,7 +1165,7 @@ function Footer() {
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-brand-300 hover:text-brand-700"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:text-slate-400 dark:hover:border-accent-500/40 dark:hover:text-accent-300"
                 >
                   <s.icon className="h-4 w-4" />
                 </a>
@@ -929,11 +1175,16 @@ function Footer() {
 
           {/* Navegación */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-brand-950">Navegación</h4>
+            <h4 className="text-sm font-bold uppercase tracking-wide text-brand-950 dark:text-white">
+              Navegación
+            </h4>
             <ul className="mt-4 space-y-3">
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="text-sm text-slate-500 transition-colors hover:text-brand-700">
+                  <a
+                    href={link.href}
+                    className="text-sm text-slate-500 transition-colors hover:text-brand-700 dark:text-slate-400 dark:hover:text-accent-300"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -943,15 +1194,21 @@ function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-brand-950">Legal</h4>
+            <h4 className="text-sm font-bold uppercase tracking-wide text-brand-950 dark:text-white">Legal</h4>
             <ul className="mt-4 space-y-3">
               <li>
-                <a href="#" className="text-sm text-slate-500 transition-colors hover:text-brand-700">
+                <a
+                  href="#"
+                  className="text-sm text-slate-500 transition-colors hover:text-brand-700 dark:text-slate-400 dark:hover:text-accent-300"
+                >
                   Política de privacidad
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-slate-500 transition-colors hover:text-brand-700">
+                <a
+                  href="#"
+                  className="text-sm text-slate-500 transition-colors hover:text-brand-700 dark:text-slate-400 dark:hover:text-accent-300"
+                >
                   Términos y condiciones
                 </a>
               </li>
@@ -959,11 +1216,11 @@ function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row">
-          <p className="text-sm text-slate-400">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row dark:border-white/10">
+          <p className="text-sm text-slate-400 dark:text-slate-500">
             © {year} {BRAND}. Todos los derechos reservados.
           </p>
-          <p className="text-sm text-slate-400">Hecho con ❤️ en Guanacaste, Costa Rica.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Hecho con ❤️ en Guanacaste, Costa Rica.</p>
         </div>
       </div>
     </footer>
@@ -980,20 +1237,24 @@ function SectionHeading({ eyebrow, title, subtitle, dark = false, align = 'cente
     <div className={isCenter ? 'mx-auto max-w-2xl text-center' : 'max-w-xl text-left'}>
       <span
         className={`inline-block text-sm font-bold uppercase tracking-wide ${
-          dark ? 'text-accent-400' : 'text-accent-600'
+          dark ? 'text-accent-400' : 'text-accent-600 dark:text-accent-400'
         }`}
       >
         {eyebrow}
       </span>
       <h2
         className={`mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl ${
-          dark ? 'text-white' : 'text-brand-950'
+          dark ? 'text-white' : 'text-brand-950 dark:text-white'
         }`}
       >
         {title}
       </h2>
       {subtitle && (
-        <p className={`mt-4 text-lg leading-relaxed ${dark ? 'text-slate-300' : 'text-slate-600'}`}>
+        <p
+          className={`mt-4 text-lg leading-relaxed ${
+            dark ? 'text-slate-300' : 'text-slate-600 dark:text-slate-300'
+          }`}
+        >
           {subtitle}
         </p>
       )}

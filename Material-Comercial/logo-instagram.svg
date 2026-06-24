@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#13265f"/>
+      <stop offset="0.55" stop-color="#0f205f"/>
+      <stop offset="1" stop-color="#0a1640"/>
+    </linearGradient>
+    <linearGradient id="bars" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#059668"/>
+      <stop offset="1" stop-color="#34d39e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.7" cy="0.25" r="0.6">
+      <stop offset="0" stop-color="#10b981" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Fondo (a sangre completa: al recortarse en circulo queda limpio) -->
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+
+  <!-- Icono: barras ascendentes (datos / analitica) -->
+  <g>
+    <rect x="407" y="392" width="70" height="118" rx="14" fill="url(#bars)"/>
+    <rect x="505" y="332" width="70" height="178" rx="14" fill="url(#bars)"/>
+    <rect x="603" y="262" width="70" height="248" rx="14" fill="url(#bars)"/>
+    <!-- Linea de tendencia + punto -->
+    <polyline points="442,452 540,392 638,300" fill="none" stroke="#a6f3d6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="638" cy="300" r="20" fill="#a6f3d6"/>
+  </g>
+
+  <!-- Monograma DT -->
+  <text x="540" y="710" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="200" letter-spacing="6" fill="#ffffff">DT<tspan fill="#34d39e">.</tspan></text>
+
+  <!-- Wordmark -->
+  <text x="540" y="800" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="66" letter-spacing="14" fill="#e2e8f0">INSIGHTCODE</text>
+</svg>

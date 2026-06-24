@@ -7,12 +7,31 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-white text-brand-950 antialiased;
+    @apply bg-white text-brand-950 antialiased transition-colors duration-300;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  /* Modo oscuro: fondo base por defecto */
+  html.dark body {
+    @apply bg-brand-950 text-slate-100;
   }
   /* Compensa el navbar fijo al saltar a una sección con ancla */
   section[id] {
     scroll-margin-top: 5rem;
+  }
+  /* Mejora visible del foco con teclado (accesibilidad) */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-accent-500 ring-offset-2;
+  }
+  html.dark a:focus-visible,
+  html.dark button:focus-visible,
+  html.dark input:focus-visible,
+  html.dark select:focus-visible,
+  html.dark textarea:focus-visible {
+    @apply ring-offset-brand-950;
   }
 }
 
@@ -20,4 +39,22 @@
   .container-page {
     @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
   }
+}
+
+/* Accesibilidad: reducir animaciones */
+html.reduce-motion,
+html.reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Accesibilidad: alto contraste (se aplica al contenido, no a los botones flotantes) */
+.contrast-boost {
+  filter: contrast(1.22) saturate(1.05);
+}
+.contrast-boost a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
