@@ -38,7 +38,7 @@ const WHATSAPP_NUMBER = '50672296460'
 const WHATSAPP_DISPLAY = '+506 7229 6460'
 // Mensaje precargado al abrir el chat (mejora la conversión)
 const WHATSAPP_MESSAGE = encodeURIComponent(
-  'Hola 👋, me interesa una asesoría sobre tecnología y datos para mi negocio.'
+  '¡Hola! 😊 Vi su página web y me gustaría saber cómo pueden ayudarme a mejorar mi negocio. ¿Me podrían dar más información?'
 )
 const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`
 
