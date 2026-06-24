@@ -20,7 +20,6 @@ import {
   Mail,
   Linkedin,
   Instagram,
-  Facebook,
   Building2,
   TrendingUp,
   Accessibility,
@@ -1254,7 +1253,7 @@ function Footer() {
   return (
     <footer className="border-t border-slate-100 bg-white dark:border-white/10 dark:bg-brand-950">
       <div className="container-page py-14">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-10 md:grid-cols-[1.6fr_1fr]">
           {/* Marca */}
           <div>
             <a href="#inicio" className="flex items-center gap-2">
@@ -1271,13 +1270,22 @@ function Footer() {
             </p>
             <div className="mt-5 flex gap-3">
               {[
-                { icon: Facebook, href: '#', label: 'Facebook' },
-                { icon: Instagram, href: '#', label: 'Instagram' },
-                { icon: Linkedin, href: '#', label: 'LinkedIn' },
+                {
+                  icon: Instagram,
+                  href: 'https://www.instagram.com/dtinsightcode/',
+                  label: 'Instagram',
+                },
+                {
+                  icon: Linkedin,
+                  href: 'https://www.linkedin.com/in/jose-daniel-torres-vargas-7372a0222/',
+                  label: 'LinkedIn',
+                },
               ].map((s) => (
                 <a
                   key={s.label}
                   href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={s.label}
                   className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:border-brand-300 hover:text-brand-700 dark:border-white/10 dark:text-slate-400 dark:hover:border-accent-500/40 dark:hover:text-accent-300"
                 >
@@ -1306,35 +1314,13 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Legal */}
-          <div>
-            <h4 className="text-sm font-bold uppercase tracking-wide text-brand-950 dark:text-white">Legal</h4>
-            <ul className="mt-4 space-y-3">
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-slate-500 transition-colors hover:text-brand-700 dark:text-slate-400 dark:hover:text-accent-300"
-                >
-                  Política de privacidad
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-slate-500 transition-colors hover:text-brand-700 dark:text-slate-400 dark:hover:text-accent-300"
-                >
-                  Términos y condiciones
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row dark:border-white/10">
           <p className="text-sm text-slate-400 dark:text-slate-500">
             © {year} {BRAND}. Todos los derechos reservados.
           </p>
-          <p className="text-sm text-slate-400 dark:text-slate-500">Hecho con ❤️ en Guanacaste, Costa Rica.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Hecho en Guanacaste, Costa Rica.</p>
         </div>
       </div>
     </footer>
