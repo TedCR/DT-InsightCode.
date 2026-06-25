@@ -1029,8 +1029,8 @@ function ContactSection() {
               <ContactDetail
                 icon={Mail}
                 label="Correo electrónico"
-                value="josedanieltorresvargas8@gmail.com"
-                href="mailto:josedanieltorresvargas8@gmail.com"
+                value="dtinsightcode@gmail.com"
+                href="mailto:dtinsightcode@gmail.com"
               />
               <ContactDetail icon={MapPin} label="Ubicación" value="Guanacaste, Costa Rica" />
             </div>
