@@ -34,7 +34,7 @@ import {
   ChevronRight,
   ZoomIn,
 } from 'lucide-react'
-import { supabase, isSupabaseConfigured } from './lib/supabaseClient'
+import { submitLead, isSupabaseConfigured } from './lib/supabaseClient'
 
 /* ============================================================
    DATOS DE CONTENIDO (fácil de editar en un solo lugar)
@@ -57,15 +57,40 @@ const NAV_LINKS = [
   { label: 'Servicios', href: '#servicios' },
   { label: 'Proceso', href: '#proceso' },
   { label: 'Casos de éxito', href: '#casos' },
+  { label: 'Preguntas', href: '#preguntas' },
   { label: 'Contacto', href: '#contacto' },
+]
+
+// Preguntas frecuentes (deben coincidir con el JSON-LD FAQPage de index.html)
+const FAQS = [
+  {
+    q: '¿Cuánto cuesta una página web en Costa Rica?',
+    a: 'Depende del alcance de tu proyecto. Por eso la primera asesoría es gratis: conversamos, entendemos tu negocio y te damos un precio claro, sin sorpresas ni letra pequeña.',
+  },
+  {
+    q: '¿Qué es un dashboard de ventas y para qué sirve?',
+    a: 'Es un panel que muestra tus ventas, costos y ganancias en tiempo real, con gráficos fáciles de leer. Sirve para saber exactamente dónde ganás más dinero y dónde podés reducir costos, sin hacer cuentas a mano.',
+  },
+  {
+    q: '¿Trabajan solo en Guanacaste?',
+    a: 'Nuestra base está en Guanacaste y atendemos Liberia, Nicoya, Santa Cruz, Cañas, Tilarán, Tamarindo, Playas del Coco y alrededores. Como todo es en línea, también trabajamos con clientes de cualquier parte de Costa Rica.',
+  },
+  {
+    q: '¿Cuánto tarda el desarrollo de una página o sistema?',
+    a: 'Una página web profesional suele estar lista en 1 a 2 semanas. Un sistema a la medida depende de los módulos, pero siempre te damos fechas claras desde la propuesta y te mostramos avances durante el desarrollo.',
+  },
+  {
+    q: '¿La asesoría de verdad es gratis?',
+    a: 'Sí. El diagnóstico inicial no tiene costo ni compromiso: revisamos tu negocio, te damos recomendaciones y una propuesta. Vos decidís si avanzamos.',
+  },
 ]
 
 const SERVICES = [
   {
     icon: BarChart3,
-    title: 'Business Analytics & Datos',
+    title: 'Dashboards de Ventas & Business Analytics',
     description:
-      'Transformamos tus hojas de Excel y tus ventas en dashboards interactivos para que sepas exactamente dónde ganar más dinero y reducir costos.',
+      'Transformamos tus hojas de Excel en dashboards de ventas interactivos y reportes claros, para que sepas exactamente dónde ganar más dinero y reducir costos.',
     points: ['Dashboards en tiempo real', 'KPIs claros y accionables', 'Reportes automáticos'],
   },
   {
@@ -154,11 +179,11 @@ const CASE_STUDY = {
     'Perfiles de asociado autogestionables',
   ],
   gallery: [
-    { src: '/casos/tilaran-dashboard.png', alt: 'Dashboard del asociado con resumen de ahorros y préstamos' },
-    { src: '/casos/tilaran-prestamos.png', alt: 'Listado de préstamos activos con exportación de reportes' },
-    { src: '/casos/tilaran-ahorros.png', alt: 'Panel de ahorros con métricas y estado de cada producto' },
-    { src: '/casos/tilaran-solicitud.png', alt: 'Formulario de solicitud de préstamo en línea' },
-    { src: '/casos/tilaran-perfil.png', alt: 'Edición de perfil del asociado' },
+    { src: '/casos/tilaran-dashboard.webp', w: 1086, h: 525, alt: 'Dashboard del asociado con resumen de ahorros y préstamos' },
+    { src: '/casos/tilaran-prestamos.webp', w: 1084, h: 500, alt: 'Listado de préstamos activos con exportación de reportes' },
+    { src: '/casos/tilaran-ahorros.webp', w: 1075, h: 486, alt: 'Panel de ahorros con métricas y estado de cada producto' },
+    { src: '/casos/tilaran-solicitud.webp', w: 1079, h: 542, alt: 'Formulario de solicitud de préstamo en línea' },
+    { src: '/casos/tilaran-perfil.webp', w: 1082, h: 533, alt: 'Edición de perfil del asociado' },
   ],
 }
 
@@ -215,6 +240,7 @@ export default function App() {
           <LocalTrust />
           <Process />
           <CaseStudy />
+          <Faq />
           <ContactSection />
         </main>
         <Footer />
@@ -532,8 +558,9 @@ function Hero() {
           </span>
 
           <h1 className="animate-fade-up mt-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-brand-950 sm:text-5xl lg:text-6xl dark:text-white">
-            Impulsamos tu negocio en Guanacaste con{' '}
-            <span className="text-brand-700 dark:text-accent-400">datos y tecnología</span> a tu medida
+            Páginas web, sistemas y{' '}
+            <span className="text-brand-700 dark:text-accent-400">dashboards de ventas</span> para tu
+            negocio en Guanacaste
           </h1>
 
           <p className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
@@ -651,6 +678,11 @@ function LocalTrust() {
               hablan tu idioma y te dan soporte real cuando lo necesitás, sin intermediarios ni letra
               pequeña.
             </p>
+            <p className="mt-4 text-lg leading-relaxed text-slate-600 dark:text-slate-300">
+              Atendemos negocios en Liberia, Nicoya, Santa Cruz, Cañas, Tilarán, Tamarindo, Playas del
+              Coco y todo Guanacaste. Y como todo es en línea, también trabajamos con clientes de
+              cualquier parte de Costa Rica.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-1">
@@ -700,7 +732,7 @@ function Process() {
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-500 text-brand-950">
                     <step.icon className="h-6 w-6" strokeWidth={2.2} />
                   </span>
-                  <span className="text-3xl font-black text-white/15">{step.step}</span>
+                  <span className="text-3xl font-extrabold text-white/15">{step.step}</span>
                 </div>
                 <h3 className="mt-5 text-lg font-bold">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-300">{step.description}</p>
@@ -803,6 +835,33 @@ function CaseStudy() {
                 <CaseImage key={img.src} image={img} onOpen={() => setLightbox(i + 1)} />
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* CTA: capturar la intención justo después de ver el caso */}
+        <div className="mt-14 flex flex-col items-center gap-5 rounded-3xl bg-brand-900 p-8 text-center sm:p-10 dark:bg-brand-800">
+          <h3 className="text-2xl font-bold text-white sm:text-3xl">
+            ¿Tu negocio también lleva todo en Excel y papel?
+          </h3>
+          <p className="max-w-xl text-slate-300">
+            Conversemos. Te mostramos cómo se vería tu sistema, sin costo ni compromiso.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 px-7 py-3.5 font-semibold text-brand-950 transition-colors hover:bg-accent-400"
+            >
+              Escribinos por WhatsApp
+              <ArrowRight className="h-5 w-5" />
+            </a>
+            <a
+              href="#contacto"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-7 py-3.5 font-semibold text-white transition-colors hover:bg-white/10"
+            >
+              Dejar mis datos
+            </a>
           </div>
         </div>
       </div>
@@ -928,6 +987,10 @@ function CaseImage({ image, onOpen }) {
       <img
         src={image.src}
         alt={image.alt}
+        width={image.w}
+        height={image.h}
+        loading="lazy"
+        decoding="async"
         onError={() => setFailed(true)}
         className="block h-auto w-full transition-transform duration-300 group-hover:scale-[1.03]"
       />
@@ -938,6 +1001,52 @@ function CaseImage({ image, onOpen }) {
         </span>
       </span>
     </button>
+  )
+}
+
+/* ============================================================
+   PREGUNTAS FRECUENTES (SEO de cola larga + confianza)
+   ============================================================ */
+
+function Faq() {
+  const [open, setOpen] = useState(0)
+  return (
+    <section id="preguntas" className="bg-white py-20 sm:py-28 dark:bg-brand-950">
+      <div className="container-page">
+        <SectionHeading
+          eyebrow="Preguntas frecuentes"
+          title="Lo que todo negocio nos pregunta"
+          subtitle="Respuestas claras y sin tecnicismos. Si tenés otra duda, escribinos por WhatsApp."
+        />
+        <div className="mx-auto mt-12 max-w-3xl space-y-3">
+          {FAQS.map((item, i) => {
+            const isOpen = open === i
+            return (
+              <div
+                key={item.q}
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/60 dark:border-white/10 dark:bg-white/5"
+              >
+                <button
+                  onClick={() => setOpen(isOpen ? -1 : i)}
+                  aria-expanded={isOpen}
+                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+                >
+                  <span className="font-semibold text-brand-950 dark:text-white">{item.q}</span>
+                  <Plus
+                    className={`h-5 w-5 shrink-0 text-accent-500 transition-transform ${
+                      isOpen ? 'rotate-45' : ''
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <p className="px-6 pb-5 leading-relaxed text-slate-600 dark:text-slate-300">{item.a}</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -979,19 +1088,15 @@ function ContactSection() {
     }
 
     try {
-      const { error } = await supabase.from('leads_contacto').insert([
-        {
-          nombre: form.nombre.trim(),
-          nombre_negocio: form.negocio.trim(),
-          telefono: form.telefono.trim(),
-          correo: form.correo.trim().toLowerCase(),
-          tipo_servicio: form.servicio,
-          // origen es útil para saber de qué campaña/página vino el lead
-          origen: 'landing-web',
-        },
-      ])
-
-      if (error) throw error
+      await submitLead({
+        nombre: form.nombre.trim(),
+        nombre_negocio: form.negocio.trim(),
+        telefono: form.telefono.trim(),
+        correo: form.correo.trim().toLowerCase(),
+        tipo_servicio: form.servicio,
+        // origen es útil para saber de qué campaña/página vino el lead
+        origen: 'landing-web',
+      })
 
       setStatus('success')
       setForm(INITIAL_FORM)

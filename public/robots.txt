@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /demo-brisas.html
+Disallow: /demo-tortuga.html
+
+Sitemap: https://dtinsightcode.josedanieltorresvargas8.workers.dev/sitemap.xml
