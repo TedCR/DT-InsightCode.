@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   BarChart3,
   Code2,
@@ -158,34 +158,63 @@ const SERVICE_OPTIONS = [
   'No estoy seguro / Quiero asesoría',
 ]
 
-// Caso de éxito destacado. Coloca las capturas en /public/casos/ con estos nombres.
-const CASE_STUDY = {
-  client: 'Asociación Solidarista de la Municipalidad de Tilarán',
-  tag: 'Sistema de gestión a medida',
-  summary:
-    'La asociación llevaba toda su operación de forma manual: ahorros, préstamos y solicitudes en hojas de cálculo y papel. Desarrollamos un sistema web completo que digitalizó y centralizó toda su gestión.',
-  before: 'Todo en hojas de Excel y papel, sin control centralizado ni reportes.',
-  after: 'Plataforma web completa: dashboard, ahorros, préstamos, solicitudes y reportes en un solo lugar.',
-  metrics: [
-    { value: '100%', label: 'Procesos digitalizados' },
-    { value: '0', label: 'Trámites en papel' },
-    { value: '24/7', label: 'Acceso para asociados' },
-  ],
-  features: [
-    'Dashboard con ahorros y préstamos en tiempo real',
-    'Gestión de préstamos con exportación a PDF y CSV',
-    'Control de ahorros programados, vacacionales y navideños',
-    'Solicitudes de préstamo y retiro en línea',
-    'Perfiles de asociado autogestionables',
-  ],
-  gallery: [
-    { src: '/casos/tilaran-dashboard.webp', w: 1086, h: 525, alt: 'Dashboard del asociado con resumen de ahorros y préstamos' },
-    { src: '/casos/tilaran-prestamos.webp', w: 1084, h: 500, alt: 'Listado de préstamos activos con exportación de reportes' },
-    { src: '/casos/tilaran-ahorros.webp', w: 1075, h: 486, alt: 'Panel de ahorros con métricas y estado de cada producto' },
-    { src: '/casos/tilaran-solicitud.webp', w: 1079, h: 542, alt: 'Formulario de solicitud de préstamo en línea' },
-    { src: '/casos/tilaran-perfil.webp', w: 1082, h: 533, alt: 'Edición de perfil del asociado' },
-  ],
-}
+// Casos de éxito. Las capturas viven en /public/casos/ en formato WebP.
+const CASOS = [
+  {
+    client: 'Asociación Solidarista de la Municipalidad de Tilarán',
+    tag: 'Sistema de gestión a medida',
+    summary:
+      'La asociación llevaba toda su operación de forma manual: ahorros, préstamos y solicitudes en hojas de cálculo y papel. Desarrollamos un sistema web completo que digitalizó y centralizó toda su gestión.',
+    before: 'Todo en hojas de Excel y papel, sin control centralizado ni reportes.',
+    after: 'Plataforma web completa: dashboard, ahorros, préstamos, solicitudes y reportes en un solo lugar.',
+    metrics: [
+      { value: '100%', label: 'Procesos digitalizados' },
+      { value: '0', label: 'Trámites en papel' },
+      { value: '24/7', label: 'Acceso para asociados' },
+    ],
+    features: [
+      'Dashboard con ahorros y préstamos en tiempo real',
+      'Gestión de préstamos con exportación a PDF y CSV',
+      'Control de ahorros programados, vacacionales y navideños',
+      'Solicitudes de préstamo y retiro en línea',
+      'Perfiles de asociado autogestionables',
+    ],
+    gallery: [
+      { src: '/casos/tilaran-dashboard.webp', w: 1086, h: 525, alt: 'Dashboard del asociado con resumen de ahorros y préstamos' },
+      { src: '/casos/tilaran-prestamos.webp', w: 1084, h: 500, alt: 'Listado de préstamos activos con exportación de reportes' },
+      { src: '/casos/tilaran-ahorros.webp', w: 1075, h: 486, alt: 'Panel de ahorros con métricas y estado de cada producto' },
+      { src: '/casos/tilaran-solicitud.webp', w: 1079, h: 542, alt: 'Formulario de solicitud de préstamo en línea' },
+      { src: '/casos/tilaran-perfil.webp', w: 1082, h: 533, alt: 'Edición de perfil del asociado' },
+    ],
+  },
+  {
+    client: 'Pinticos Yei',
+    tag: 'Sistema de caja y control de ventas',
+    summary:
+      'Un emprendimiento de comida que anotaba las ventas en cuaderno y no sabía con certeza cuánto ganaba al día. Le construimos un punto de venta a la medida que funciona desde el celular: registra órdenes, cuadra la caja y controla los gastos.',
+    before: 'Ventas en cuaderno, cierres a mano y sin saber la ganancia real del día.',
+    after: 'Punto de venta en el celular: órdenes, fiados, gastos, cierre con ganancia neta y reportes.',
+    metrics: [
+      { value: 'Al instante', label: 'Registro de cada venta' },
+      { value: 'Automático', label: 'Cierre y ganancia neta' },
+      { value: 'PDF', label: 'Reporte del día' },
+    ],
+    features: [
+      'Registro de órdenes tocando los productos, sin cuentas a mano',
+      'Cierre del día con cobrado, fiado, costos y ganancia neta',
+      'Control de gastos por categoría',
+      'Reportes de ventas y productos más vendidos',
+      'Todo desde el celular, sin instalar nada',
+    ],
+    demoNote: 'Los datos que se ven en las capturas son ficticios, de demostración.',
+    gallery: [
+      { src: '/casos/pinticos-orden.webp', w: 665, h: 927, alt: 'Pantalla para registrar una orden tocando los productos' },
+      { src: '/casos/pinticos-dashboard.webp', w: 644, h: 925, alt: 'Reportes de ventas por día y productos más vendidos' },
+      { src: '/casos/pinticos-cierre.webp', w: 665, h: 924, alt: 'Cierre del día con la ganancia neta calculada' },
+      { src: '/casos/pinticos-gastos.webp', w: 677, h: 737, alt: 'Registro y control de gastos del negocio' },
+    ],
+  },
+]
 
 const FONT_SIZES = { '-1': '93.75%', 0: '100%', 1: '112.5%', 2: '125%' }
 
@@ -598,6 +627,26 @@ function Hero() {
             </span>
           </div>
         </div>
+
+        {/* Sistemas reales que hemos entregado: se ve el producto, no solo el texto */}
+        <div className="animate-fade-up mx-auto mt-14 max-w-5xl sm:mt-16">
+          <img
+            src="/hero-mockup.webp"
+            alt="Sistema de gestión de la Asociación Solidarista de Tilarán y sistema de caja de Pinticos Yei"
+            width={1600}
+            height={700}
+            className="block h-auto w-full"
+          />
+          <p className="mt-3 text-center text-sm text-slate-500 dark:text-slate-400">
+            Sistemas que ya están funcionando en negocios de Guanacaste.{' '}
+            <a
+              href="#casos"
+              className="font-semibold text-brand-700 underline-offset-2 hover:underline dark:text-accent-400"
+            >
+              Ver los casos
+            </a>
+          </p>
+        </div>
       </div>
     </section>
   )
@@ -754,88 +803,127 @@ function Process() {
    ============================================================ */
 
 function CaseStudy() {
-  // null = cerrado; un número = índice de la imagen ampliada
+  // null = cerrado; { caso, index } = imagen ampliada
   const [lightbox, setLightbox] = useState(null)
+  const abierto = lightbox !== null
+
+  // Identidad estable: el visor las usa como dependencias de sus atajos de teclado.
+  const moverIndice = useCallback((fn) => {
+    setLightbox((prev) => (prev ? { ...prev, index: fn(prev.index) } : prev))
+  }, [])
+  const cerrarVisor = useCallback(() => setLightbox(null), [])
 
   return (
     <section id="casos" className="bg-slate-50 py-20 sm:py-28 dark:bg-brand-950">
       <div className="container-page">
         <SectionHeading
-          eyebrow="Caso de éxito"
+          eyebrow="Casos de éxito"
           title="De hojas de cálculo a un sistema completo"
-          subtitle="Así digitalizamos por completo la operación de una asociación solidarista en Guanacaste."
+          subtitle="Negocios de Guanacaste que dejaron el papel y el Excel atrás. Tocá cualquier captura para verla en grande."
         />
 
-        <div className="mt-14 grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
-          {/* Lado izquierdo: historia + métricas */}
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-4 py-1.5 text-xs font-semibold text-accent-300 dark:bg-brand-800">
-              <Building2 className="h-3.5 w-3.5" />
-              {CASE_STUDY.tag}
-            </span>
-            <h3 className="mt-5 text-2xl font-bold leading-snug text-brand-950 dark:text-white">
-              {CASE_STUDY.client}
-            </h3>
-            <p className="mt-4 leading-relaxed text-slate-600 dark:text-slate-300">{CASE_STUDY.summary}</p>
+        <div className="mt-14 space-y-20">
+          {CASOS.map((caso, ci) => (
+            <article
+              key={caso.client}
+              className="grid items-start gap-10 lg:grid-cols-2 lg:gap-14"
+            >
+              {/* Lado izquierdo: historia + métricas */}
+              <div className={ci % 2 === 1 ? 'lg:order-2' : undefined}>
+                <span className="inline-flex items-center gap-2 rounded-full bg-brand-900 px-4 py-1.5 text-xs font-semibold text-accent-300 dark:bg-brand-800">
+                  <Building2 className="h-3.5 w-3.5" />
+                  {caso.tag}
+                </span>
+                <h3 className="mt-5 text-2xl font-bold leading-snug text-brand-950 dark:text-white">
+                  {caso.client}
+                </h3>
+                <p className="mt-4 leading-relaxed text-slate-600 dark:text-slate-300">{caso.summary}</p>
 
-            {/* Antes / Después */}
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                  Antes
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-                  {CASE_STUDY.before}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-accent-200 bg-accent-50 p-5 dark:border-accent-500/30 dark:bg-accent-500/10">
-                <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent-700 dark:text-accent-300">
-                  <TrendingUp className="h-3.5 w-3.5" /> Después
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-accent-900 dark:text-accent-100">
-                  {CASE_STUDY.after}
-                </p>
-              </div>
-            </div>
-
-            {/* Métricas */}
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {CASE_STUDY.metrics.map((m) => (
-                <div
-                  key={m.label}
-                  className="rounded-2xl bg-brand-900 p-4 text-center text-white dark:bg-brand-800"
-                >
-                  <p className="text-2xl font-extrabold text-accent-300">{m.value}</p>
-                  <p className="mt-1 text-xs leading-tight text-slate-300">{m.label}</p>
+                {/* Antes / Después */}
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                    <p className="text-xs font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                      Antes
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                      {caso.before}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-accent-200 bg-accent-50 p-5 dark:border-accent-500/30 dark:bg-accent-500/10">
+                    <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent-700 dark:text-accent-300">
+                      <TrendingUp className="h-3.5 w-3.5" /> Después
+                    </p>
+                    <p className="mt-2 text-sm leading-relaxed text-accent-900 dark:text-accent-100">
+                      {caso.after}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Funcionalidades entregadas */}
-            <ul className="mt-6 space-y-2.5">
-              {CASE_STUDY.features.map((f) => (
-                <li
-                  key={f}
-                  className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300"
-                >
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-500" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
+                {/* Métricas */}
+                <div className="mt-6 grid grid-cols-3 gap-3">
+                  {caso.metrics.map((m) => (
+                    <div
+                      key={m.label}
+                      className="rounded-2xl bg-brand-900 p-4 text-center text-white dark:bg-brand-800"
+                    >
+                      <p className="text-xl font-extrabold text-accent-300 sm:text-2xl">{m.value}</p>
+                      <p className="mt-1 text-xs leading-tight text-slate-300">{m.label}</p>
+                    </div>
+                  ))}
+                </div>
 
-          {/* Lado derecho: galería de capturas (clic para ampliar) */}
-          <div className="grid gap-4">
-            {/* Captura principal */}
-            <CaseImage image={CASE_STUDY.gallery[0]} onOpen={() => setLightbox(0)} />
-            {/* Capturas secundarias */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              {CASE_STUDY.gallery.slice(1).map((img, i) => (
-                <CaseImage key={img.src} image={img} onOpen={() => setLightbox(i + 1)} />
-              ))}
-            </div>
-          </div>
+                {/* Funcionalidades entregadas */}
+                <ul className="mt-6 space-y-2.5">
+                  {caso.features.map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300"
+                    >
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-500" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {caso.demoNote && (
+                  <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-200/70 px-4 py-2 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    {caso.demoNote}
+                  </p>
+                )}
+              </div>
+
+              {/* Lado derecho: galería de capturas (clic para ampliar) */}
+              <div className={`grid gap-4 ${ci % 2 === 1 ? 'lg:order-1 sm:grid-cols-2' : ''}`}>
+                {ci % 2 === 1 ? (
+                  // Capturas verticales (celular): todas del mismo tamaño
+                  caso.gallery.map((img, i) => (
+                    <CaseImage
+                      key={img.src}
+                      image={img}
+                      onOpen={() => setLightbox({ caso: ci, index: i })}
+                    />
+                  ))
+                ) : (
+                  <>
+                    <CaseImage
+                      image={caso.gallery[0]}
+                      onOpen={() => setLightbox({ caso: ci, index: 0 })}
+                    />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {caso.gallery.slice(1).map((img, i) => (
+                        <CaseImage
+                          key={img.src}
+                          image={img}
+                          onOpen={() => setLightbox({ caso: ci, index: i + 1 })}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </article>
+          ))}
         </div>
 
         {/* CTA: capturar la intención justo después de ver el caso */}
@@ -866,13 +954,13 @@ function CaseStudy() {
         </div>
       </div>
 
-      {/* Visor de imagen ampliada (galería) */}
-      {lightbox !== null && (
+      {/* Visor de imagen ampliada (galería del caso abierto) */}
+      {abierto && (
         <Lightbox
-          images={CASE_STUDY.gallery}
-          index={lightbox}
-          setIndex={setLightbox}
-          onClose={() => setLightbox(null)}
+          images={CASOS[lightbox.caso].gallery}
+          index={lightbox.index}
+          setIndex={moverIndice}
+          onClose={cerrarVisor}
         />
       )}
     </section>
