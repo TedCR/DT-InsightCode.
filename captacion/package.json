@@ -1,0 +1,14 @@
+{
+  "name": "dt-agente-captacion",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:crear": "wrangler d1 create dt-leads",
+    "db:migrar": "wrangler d1 execute dt-leads --remote --file=schema.sql",
+    "leads": "wrangler d1 execute dt-leads --remote --command=\"SELECT creado, nombre, contacto, servicio, necesidad FROM leads WHERE atendido=0 ORDER BY creado DESC\""
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

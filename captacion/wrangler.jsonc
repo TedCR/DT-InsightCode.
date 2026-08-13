@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dt-agente-captacion",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "observability": { "enabled": true },
+
+  "vars": {
+    "ALLOWED_ORIGIN": "https://dtinsightcode.josedanieltorresvargas8.workers.dev"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dt-leads",
+      "database_id": "PEGA_AQUI_EL_ID_QUE_TE_DA_WRANGLER"
+    }
+  ]
+}

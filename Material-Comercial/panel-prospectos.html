@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Panel de Prospectos · DT InsightCode</title>
+<style>
+  :root{--azul:#0f205f;--azul2:#1736b8;--esm:#10b981;--esm-bg:#ecfdf7;--gris:#475569;--bg:#f1f5f9;--linea:#e2e8f0;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;}
+  body{background:var(--bg);color:#1e293b;padding-bottom:60px;}
+  header{background:var(--azul);color:#fff;padding:22px 28px;position:sticky;top:0;z-index:10;box-shadow:0 4px 20px rgba(15,32,95,.25);}
+  header h1{font-size:20px;}
+  header h1 span{color:#34d39e;}
+  header p{font-size:13px;color:#cbd5e1;margin-top:4px;}
+  .stats{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;}
+  .stat{background:rgba(255,255,255,.1);border-radius:999px;padding:4px 14px;font-size:12.5px;}
+  .stat b{color:#34d39e;}
+  main{max-width:1000px;margin:24px auto;padding:0 16px;display:grid;gap:16px;}
+  .aviso{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:14px 18px;font-size:13.5px;color:#92400e;line-height:1.5;}
+  .card{background:#fff;border:1px solid var(--linea);border-radius:16px;padding:20px;box-shadow:0 2px 10px rgba(15,32,95,.05);}
+  .card.done{opacity:.55;}
+  .top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;}
+  .nombre{font-size:17px;font-weight:800;color:var(--azul);}
+  .metas{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .chip{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--bg);color:var(--gris);}
+  .chip.lugar{background:#e0e7ff;color:#3730a3;}
+  .chip.rating{background:var(--esm-bg);color:#047853;}
+  .chip.rubro{background:#fef3c7;color:#92400e;}
+  .gancho{margin-top:10px;font-size:13.5px;color:var(--gris);line-height:1.55;background:var(--bg);border-radius:10px;padding:10px 14px;}
+  .gancho b{color:var(--azul2);}
+  textarea{width:100%;margin-top:12px;border:1px solid var(--linea);border-radius:10px;padding:12px;font-size:13.5px;line-height:1.5;min-height:110px;resize:vertical;color:#334155;}
+  .fila{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center;}
+  input.tel{border:1.5px solid var(--linea);border-radius:10px;padding:10px 12px;font-size:14px;width:170px;font-weight:600;}
+  input.tel:focus{outline:none;border-color:var(--esm);}
+  .btn{border:none;border-radius:999px;padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:all .15s;}
+  .btn-wa{background:#25d366;color:#fff;}
+  .btn-wa:hover{background:#1eb257;}
+  .btn-wa[aria-disabled="true"]{background:#cbd5e1;cursor:not-allowed;pointer-events:none;}
+  .btn-buscar{background:#fff;border:1.5px solid var(--linea);color:var(--azul2);}
+  .btn-buscar:hover{border-color:var(--azul2);}
+  .btn-copiar{background:var(--azul);color:#fff;}
+  select.estado{border:1.5px solid var(--linea);border-radius:999px;padding:9px 14px;font-size:13px;font-weight:700;color:var(--gris);background:#fff;cursor:pointer;}
+  select.estado.ok{border-color:var(--esm);color:#047853;background:var(--esm-bg);}
+  .nota{font-size:11.5px;color:#94a3b8;margin-top:8px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Panel de Prospectos <span>·</span> DT InsightCode</h1>
+  <p>Tilarán y Cañas — restaurantes, hoteles, tours, salud, comercio y sistemas especializados · Uso interno, no compartir</p>
+  <div class="stats">
+    <div class="stat">Total: <b id="s-total">–</b></div>
+    <div class="stat">Contactados: <b id="s-cont">0</b></div>
+    <div class="stat">Respondieron: <b id="s-resp">0</b></div>
+    <div class="stat">Cotizados: <b id="s-cot">0</b></div>
+  </div>
+</header>
+<main id="lista">
+  <div class="aviso">
+    ⚠️ <b>Cómo usar el panel:</b> ① Tocá <b>«Buscar teléfono»</b> — abre Google con la búsqueda lista; el número suele estar en su Facebook o ficha de Maps (formato: solo 8 dígitos, ej. <b>88881234</b>). ② Pegalo en la casilla. ③ Tocá <b>«Abrir WhatsApp»</b> — se abre el chat con el mensaje personalizado listo; revisalo y envialo. ④ Actualizá el <b>estado</b>. Máximo <b>5–10 por día</b> para no parecer spam y poder atender respuestas. Todo se guarda solo en este navegador.
+    <br/><br/>📌 <i>La Tortuga Arenal y Brisas del Lago no están en la lista: ya fueron contactados.</i>
+  </div>
+</main>
+<script>
+const PROSPECTOS = [
+ {n:"Restaurante y Pizzería Donde Jossy",lugar:"Tilarán",rubro:"Pizzería",rating:"4.9★ · 33 reseñas TripAdvisor",gancho:"De los <b>mejor calificados de Tilarán (4.9★)</b> y sin página web propia. Gancho: felicitarlo por la calificación + web con menú y pedidos por WhatsApp.",
+ msg:"¡Hola! 👋 ¿Hablo con el equipo de Donde Jossy? Les escribo de DT InsightCode, somos de Guanacaste. Primero, ¡felicidades! 🙌 Vi que tienen 4.9 estrellas en TripAdvisor, de lo mejor de Tilarán 👏. Justo por eso les escribo: noté que no tienen página web, y mucha gente que busca dónde comer pizza en Tilarán en Google no los encuentra. ¿Les gustaría ver cómo se vería su página con menú y pedidos por WhatsApp? Es sin costo y sin compromiso. 😊"},
+ {n:"Restaurante y Marisquería Sea Salt",lugar:"Tilarán",rubro:"Marisquería",rating:"4.9★ · 14 reseñas TripAdvisor",gancho:"Excelente calificación (4.9★). Gancho: web con menú de mariscos + reservas para turistas del lago.",
+ msg:"¡Hola! 👋 ¿Hablo con el equipo de Sea Salt? Les escribo de DT InsightCode, somos de Guanacaste. ¡Felicidades por las 4.9 estrellas en TripAdvisor! 👏 Les escribo porque muchos turistas que recorren el Lago Arenal buscan en Google dónde comer mariscos, y sin página web esas visitas se pierden. ¿Les muestro cómo se vería su página con menú y reservas por WhatsApp? Sin costo ni compromiso. 😊"},
+ {n:"Equus Bar, BBQ and Restaurant",lugar:"Tilarán (ruta del lago)",rubro:"BBQ / Bar",rating:"4.5★ · 78 reseñas TripAdvisor",gancho:"El de <b>más reseñas de la lista (78)</b>, muy visitado por extranjeros. Gancho: web bilingüe para capturar al turista del lago.",
+ msg:"Hello / ¡Hola! 👋 Les escribo de DT InsightCode (Guanacaste). Vi que Equus tiene 4.5 estrellas y casi 80 reseñas en TripAdvisor, ¡impresionante! 👏 Muchos de sus clientes son turistas que buscan en Google en inglés dónde comer cerca del lago… y sin página web bilingüe se están perdiendo a varios. ¿Les gustaría ver una propuesta de su web (español/inglés) con menú y ubicación? Es gratis y sin compromiso. 😊"},
+ {n:"Marisquería Guayo",lugar:"Tilarán",rubro:"Marisquería",rating:"4.5★ · 17 reseñas TripAdvisor",gancho:"Buena reputación local. Gancho: presencia en Google + menú digital.",
+ msg:"¡Hola! 👋 ¿Hablo con Marisquería Guayo? Les escribo de DT InsightCode, somos de Guanacaste. Vi sus buenas reseñas en TripAdvisor (4.5★) 👏. Les escribo porque cuando alguien busca 'marisquería en Tilarán' en Google, los negocios sin página web casi no aparecen. Nosotros creamos webs sencillas con menú, fotos y WhatsApp para que los encuentren fácil. ¿Les muestro un ejemplo sin compromiso? 😊"},
+ {n:"Restaurante El Portico",lugar:"Tilarán",rubro:"Café / Restaurante",rating:"4.7★ · 12 reseñas TripAdvisor",gancho:"Café bien calificado (4.7★). Gancho: web + Google Maps para atraer más clientela.",
+ msg:"¡Hola! 👋 ¿Hablo con El Portico? Les escribo de DT InsightCode, somos de Guanacaste. ¡Felicidades por sus 4.7 estrellas en TripAdvisor! 👏 Les escribo porque un café con esa calificación merece aparecer de primero cuando buscan 'café en Tilarán' en Google. Nosotros les armamos la página y el perfil de Google para lograrlo. ¿Les muestro cómo se vería, sin costo ni compromiso? 😊"},
+ {n:"Hotel & Restaurante Guadalupe",lugar:"Tilarán",rubro:"Hotel + Restaurante",rating:"4.6★ · 30 reseñas TripAdvisor",gancho:"Hotel céntrico y popular. Gancho: web bilingüe con reservas directas (sin pagar comisión a Booking).",
+ msg:"¡Hola! 👋 ¿Hablo con el Hotel Guadalupe? Les escribo de DT InsightCode, somos de Guanacaste. Vi sus excelentes reseñas (4.6★ en TripAdvisor) 👏. Les escribo porque los hoteles sin página web propia terminan pagando comisión por cada reserva de Booking o Expedia. Con una web propia con botón de reservas por WhatsApp, esas reservas son 100% suyas. ¿Les muestro cómo se vería? Es gratis y sin compromiso. 😊"},
+ {n:"Lake Arenal Pizza & Seafood",lugar:"Tilarán (lago)",rubro:"Pizzería / Mariscos",rating:"5.0★ · reseñas recientes TripAdvisor",gancho:"Calificación perfecta pero pocas reseñas: negocio en crecimiento. Gancho: crecer su visibilidad desde el inicio.",
+ msg:"¡Hola! 👋 Les escribo de DT InsightCode, somos de Guanacaste. Vi que tienen 5 estrellas en TripAdvisor, ¡excelente arranque! 👏 Justo cuando un negocio está creciendo es el mejor momento para que los turistas del lago lo encuentren en Google. Les podemos armar una página sencilla con menú, fotos y WhatsApp. ¿Les muestro un ejemplo sin costo ni compromiso? 😊"},
+ {n:"La Ceiba Tree Lodge",lugar:"Tilarán (vista al lago)",rubro:"Lodge / Hospedaje",rating:"Bien calificado en portales de viaje",gancho:"Lodge con vista al lago. Gancho: reservas directas sin comisiones + web bilingüe.",
+ msg:"Hello / ¡Hola! 👋 Les escribo de DT InsightCode (Guanacaste). Su lodge con vista al lago se ve hermoso en las fotos de los viajeros 👏. Les escribo porque muchos hospedajes pierden 15-20% de cada reserva en comisiones de Booking. Con una web propia bilingüe y reservas por WhatsApp, esas reservas son directas y sin comisión. ¿Les muestro cómo se vería la suya? Sin costo ni compromiso. 😊"},
+ {n:"Tilawa Windsurf Center",lugar:"Tilarán (Lago Arenal)",rubro:"Deportes acuáticos / Tours",rating:"Punto reconocido de windsurf del lago",gancho:"Turismo de aventura, clientela extranjera. Gancho: web bilingüe con reservas de clases/equipo en línea.",
+ msg:"Hello / ¡Hola! 👋 Les escribo de DT InsightCode (Guanacaste). El Lago Arenal es famoso para el windsurf y ustedes son referencia 👏. Les escribo porque los turistas planean estas actividades desde antes de venir, buscando en Google en inglés. Con una web bilingüe con precios y reservas en línea podrían captar esas reservas anticipadas. ¿Les muestro una propuesta sin costo ni compromiso? 😊"},
+ {n:"La Barber",lugar:"Tilarán",rubro:"Barbería",rating:"Activos en Facebook (@labarbercr)",gancho:"Barbería local activa en redes. Gancho: sistema de agenda de citas por WhatsApp (menos plantones).",
+ msg:"¡Hola! 👋 ¿Hablo con La Barber? Les escribo de DT InsightCode, somos de Guanacaste. Vi su página de Facebook, ¡buen trabajo con la barbería! 👏 Les escribo porque a muchas barberías les pasa lo mismo: citas por mensajes sueltos, plantones y tiempos muertos. Nosotros armamos sistemas sencillos de agenda de citas en línea. ¿Les muestro cómo funcionaría para ustedes? Es gratis y sin compromiso. 😊"},
+ {n:"Pizzeria Tsunami",lugar:"Tilarán",rubro:"Pizzería",rating:"18 reseñas TripAdvisor",gancho:"Reputación mejorable (3.9★): NO mencionar calificación. Gancho: atraer más clientes locales con pedidos en línea.",
+ msg:"¡Hola! 👋 ¿Hablo con Pizzería Tsunami? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque ayudamos a restaurantes de la zona a vender más con pedidos por WhatsApp y presencia en Google. Una pizzería es de los negocios que más provecho les saca (pedidos para llevar y exprés). ¿Les muestro cómo funcionaría para ustedes? Sin costo ni compromiso. 😊"},
+ {n:"Bastos Restaurante",lugar:"Cañas",rubro:"Steakhouse / Mariscos",rating:"5.0★ TripAdvisor",gancho:"Calificación perfecta en Cañas. Gancho: felicitar + web con menú y reservas.",
+ msg:"¡Hola! 👋 ¿Hablo con Bastos Restaurante? Les escribo de DT InsightCode, somos de Guanacaste. ¡Felicidades por las 5 estrellas en TripAdvisor! 👏 De lo mejor de Cañas. Les escribo porque un restaurante con esa calidad merece que lo encuentren fácil en Google, con su menú y reservas en línea. ¿Les muestro cómo se vería su página? Es gratis y sin compromiso. 😊"},
+ {n:"Soda Central",lugar:"Cañas",rubro:"Soda / Comida típica",rating:"4.8★ TripAdvisor",gancho:"Soda muy querida (4.8★). Gancho: caso Pinticos Yei — sistema de caja y control de ventas.",
+ msg:"¡Hola! 👋 ¿Hablo con Soda Central? Les escribo de DT InsightCode, somos de Guanacaste. Vi sus excelentes reseñas (4.8★) 👏. Les cuento: a un negocio de comida de la zona, Pinticos Yei, le hicimos un sistema de caja para llevar ventas, cierres y gastos desde el celular, sin cuadernos. Pensé que algo así les podría servir. ¿Les muestro cómo funciona? Es gratis y sin compromiso. 😊"},
+ {n:"Soda Don Rogelio",lugar:"Cañas",rubro:"Soda / Comida típica",rating:"4.9★ TripAdvisor",gancho:"Excelente reputación (4.9★). Gancho: caso Pinticos Yei — sistema de caja + control del negocio.",
+ msg:"¡Hola! 👋 ¿Hablo con Soda Don Rogelio? Les escribo de DT InsightCode, somos de Guanacaste. ¡Felicidades por las 4.9 estrellas! 👏 Les cuento: a Pinticos Yei, un emprendimiento de comida de la zona, le construimos un sistema de caja para registrar ventas, cuadrar el cierre del día y controlar gastos desde el celular. ¿Les gustaría verlo funcionando? Es una demostración gratis, sin compromiso. 😊"},
+ {n:"Cocobolo Restaurante",lugar:"Cañas",rubro:"Comida típica",rating:"4.4★ TripAdvisor",gancho:"Restaurante establecido en Cañas. Gancho: web con menú + Google para viajeros de la Interamericana.",
+ msg:"¡Hola! 👋 ¿Hablo con Cocobolo? Les escribo de DT InsightCode, somos de Guanacaste. Vi sus buenas reseñas en TripAdvisor 👏. Les escribo porque por Cañas pasa muchísimo viajero por la Interamericana buscando en Google dónde comer, y los restaurantes con página web y buen perfil de Google se llevan esos clientes. ¿Les muestro cómo se vería la suya? Sin costo ni compromiso. 😊"},
+
+ // ===== SISTEMAS ESPECIALIZADOS Y OTROS RUBROS =====
+ {n:"Ferretería Rafa",lugar:"Tilarán (Barrio El Carmen)",rubro:"Ferretería · SISTEMA DE INVENTARIO",rating:"Negocio establecido en Tilarán",gancho:"<b>Sistema especializado:</b> una ferretería maneja miles de artículos. Control de inventario + ventas = saber qué hay, qué falta y qué se vende.",
+ msg:"¡Hola! 👋 ¿Hablo con Ferretería Rafa? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque una ferretería maneja miles de artículos, y llevar el inventario a mano o en Excel come muchísimo tiempo. Nosotros creamos sistemas a la medida: control de inventario, ventas y saber qué se está acabando, todo desde la compu o el celular. ¿Les muestro cómo funcionaría? La demostración es gratis y sin compromiso. 😊"},
+ {n:"Guanavet",lugar:"Tilarán / Guanacaste",rubro:"Veterinaria · SISTEMA DE CITAS",rating:"Con servicio exprés en la provincia",gancho:"<b>Sistema especializado:</b> agenda de citas + expedientes de mascotas + recordatorios de vacunas (fideliza clientes).",
+ msg:"¡Hola! 👋 ¿Hablo con Guanavet? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque a las veterinarias les armamos sistemas a la medida: agenda de citas, expediente de cada mascota y recordatorios automáticos de vacunas y desparasitación (los clientes vuelven solos 🐾). ¿Les gustaría ver cómo funcionaría para ustedes? Es gratis y sin compromiso. 😊"},
+ {n:"Clínica Dra. Martínez",lugar:"Cañas (frente a rest. LEI TU)",rubro:"Clínica médica · SISTEMA DE CITAS",rating:"Consultorio en Cañas",gancho:"<b>Sistema especializado:</b> agenda en línea + recordatorios de cita (menos plantones = más ingresos).",
+ msg:"¡Hola! 👋 ¿Hablo con la Clínica de la Dra. Martínez? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque a consultorios y clínicas les creamos sistemas de agenda con recordatorios automáticos para los pacientes: menos citas perdidas y menos tiempo al teléfono. ¿Les muestro cómo funcionaría para su consulta? Es una demostración gratis, sin compromiso. 😊"},
+ {n:"Farmacia Chavarría",lugar:"Cañas (Av. 1)",rubro:"Farmacia · INVENTARIO Y VENCIMIENTOS",rating:"Farmacia local de Cañas",gancho:"<b>Sistema especializado:</b> control de inventario con alertas de vencimiento (en farmacia, producto vencido = plata perdida).",
+ msg:"¡Hola! 👋 ¿Hablo con Farmacia Chavarría? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque en una farmacia el control de inventario y las fechas de vencimiento son plata: producto vencido es pérdida directa. Creamos sistemas a la medida con alertas de vencimiento, control de existencias y ventas. ¿Les muestro cómo funcionaría? Gratis y sin compromiso. 😊"},
+ {n:"Safaris Corobici",lugar:"Cañas (Río Corobicí)",rubro:"Tours / Rafting · RESERVAS EN LÍNEA",rating:"Listado en TripAdvisor con reseñas",gancho:"Tour operador con clientela extranjera. Gancho: reservas en línea bilingües + pagos anticipados (el turista reserva antes de venir).",
+ msg:"Hello / ¡Hola! 👋 ¿Hablo con Safaris Corobici? Les escribo de DT InsightCode, somos de Guanacaste. El safari flotante del Corobicí es de lo más buscado de la zona 👏. Les escribo porque los turistas planean estos tours desde antes del viaje, buscando en Google en inglés. Con una web bilingüe con reservas y pagos en línea, captarían esas reservas anticipadas directamente, sin depender solo de intermediarios. ¿Les muestro una propuesta? Sin costo ni compromiso. 😊"},
+ {n:"Hotel Caña Brava Inn",lugar:"Cañas",rubro:"Hotel · RESERVAS DIRECTAS",rating:"De los mejor puntuados de Cañas",gancho:"Hotel de paso en la Interamericana. Gancho: reservas directas sin comisión de Booking.",
+ msg:"¡Hola! 👋 ¿Hablo con el Hotel Caña Brava Inn? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque los hoteles que dependen de Booking o Expedia pagan comisión por cada reserva. Con una página web propia con reservas por WhatsApp, esas reservas quedan 100% para ustedes. ¿Les muestro cómo se vería la suya? Es gratis y sin compromiso. 😊"},
+ {n:"Hotel Cañas",lugar:"Cañas (centro)",rubro:"Hotel · RESERVAS DIRECTAS",rating:"Listado en TripAdvisor",gancho:"Hotel céntrico para viajeros de paso. Gancho: web + Google para capturar al que busca 'hotel en Cañas' en carretera.",
+ msg:"¡Hola! 👋 ¿Hablo con Hotel Cañas? Les escribo de DT InsightCode, somos de Guanacaste. Les escribo porque muchísimo viajero busca 'hotel en Cañas' desde el celular en plena carretera, y los hoteles con buena presencia en Google se llevan esas reservas. Les podemos armar la página con reservas por WhatsApp y optimizar su perfil de Google. ¿Les muestro cómo se vería? Sin costo ni compromiso. 😊"},
+ {n:"Municipalidad de Cañas (Asoc. Solidarista)",lugar:"Cañas",rubro:"Institución · SISTEMA DE GESTIÓN",rating:"Referencia directa: caso Tilarán",gancho:"<b>El pitch más fuerte:</b> ya hicimos el sistema de la Asociación Solidarista de la Municipalidad de TILARÁN. Pedir contacto con su asociación solidarista o de empleados.",
+ msg:"¡Hola! 👋 Les escribo de DT InsightCode, somos de Guanacaste. Desarrollamos el sistema de gestión de la Asociación Solidarista de la Municipalidad de Tilarán: ahorros, préstamos y solicitudes que antes se llevaban en papel y Excel, ahora todo digital y en línea. Me gustaría contactar a la asociación solidarista o de empleados de la Municipalidad de Cañas para mostrarles el sistema funcionando. ¿Me podrían indicar con quién conversar? ¡Muchas gracias! 😊"}
+];
+
+const lista = document.getElementById('lista');
+const store = JSON.parse(localStorage.getItem('dt-prospectos')||'{}');
+function save(){ localStorage.setItem('dt-prospectos', JSON.stringify(store)); refreshStats(); }
+function refreshStats(){
+  document.getElementById('s-total').textContent = PROSPECTOS.length;
+  const vals = Object.values(store);
+  const c = s => vals.filter(v=>v.estado===s).length;
+  document.getElementById('s-cont').textContent = vals.filter(v=>['Contactado','Respondió','Cotizado','Cerrado'].includes(v.estado)).length;
+  document.getElementById('s-resp').textContent = c('Respondió') + c('Cotizado') + c('Cerrado');
+  document.getElementById('s-cot').textContent = c('Cotizado') + c('Cerrado');
+}
+const ESTADOS = ['Por contactar','Contactado','Respondió','Cotizado','Cerrado','Descartado'];
+
+PROSPECTOS.forEach((p, i) => {
+  const st = store[i] || (store[i] = { tel:'', estado:'Por contactar', msg:p.msg });
+  const card = document.createElement('div');
+  card.className = 'card' + (['Cerrado','Descartado'].includes(st.estado) ? ' done':'');
+  card.innerHTML = `
+    <div class="top">
+      <div>
+        <div class="nombre">${i+1}. ${p.n}</div>
+        <div class="metas">
+          <span class="chip lugar">📍 ${p.lugar}</span>
+          <span class="chip rubro">${p.rubro}</span>
+          <span class="chip rating">⭐ ${p.rating}</span>
+        </div>
+      </div>
+      <select class="estado ${st.estado!=='Por contactar'?'ok':''}">${ESTADOS.map(e=>`<option ${e===st.estado?'selected':''}>${e}</option>`).join('')}</select>
+    </div>
+    <div class="gancho">🎯 ${p.gancho}</div>
+    <textarea>${st.msg}</textarea>
+    <div class="fila">
+      <a class="btn btn-buscar" target="_blank" href="https://www.google.com/search?q=${encodeURIComponent('"'+p.n+'" '+p.lugar+' teléfono facebook')}">🔎 Buscar teléfono</a>
+      <input class="tel" type="tel" placeholder="8888 1234" value="${st.tel}" maxlength="12"/>
+      <a class="btn btn-wa" target="_blank" aria-disabled="${st.tel.replace(/\D/g,'').length<8}">💬 Abrir WhatsApp</a>
+      <button class="btn btn-copiar">📋 Copiar mensaje</button>
+    </div>
+    <div class="nota">El número: solo los 8 dígitos de Costa Rica (el +506 se agrega solo).</div>`;
+
+  const sel = card.querySelector('select');
+  const ta = card.querySelector('textarea');
+  const tel = card.querySelector('input.tel');
+  const wa = card.querySelector('.btn-wa');
+  const cp = card.querySelector('.btn-copiar');
+
+  function updateWa(){
+    const d = tel.value.replace(/\D/g,'');
+    st.tel = tel.value; st.msg = ta.value; save();
+    if(d.length >= 8){
+      wa.setAttribute('aria-disabled','false');
+      wa.href = 'https://wa.me/506' + d.slice(-8) + '?text=' + encodeURIComponent(ta.value);
+    } else { wa.setAttribute('aria-disabled','true'); wa.removeAttribute('href'); }
+  }
+  tel.addEventListener('input', updateWa);
+  ta.addEventListener('input', updateWa);
+  sel.addEventListener('change', () => {
+    st.estado = sel.value; save();
+    sel.classList.toggle('ok', st.estado!=='Por contactar');
+    card.classList.toggle('done', ['Cerrado','Descartado'].includes(st.estado));
+  });
+  cp.addEventListener('click', () => { navigator.clipboard.writeText(ta.value); cp.textContent='✅ Copiado'; setTimeout(()=>cp.textContent='📋 Copiar mensaje',1500); });
+  updateWa();
+  lista.appendChild(card);
+});
+refreshStats();
+</script>
+</body>
+</html>
